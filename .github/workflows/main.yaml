@@ -16,6 +16,7 @@ jobs:
         uses: pierotofy/set-swap-space@master
         with:
           swap-size-gb: 10
+          
       # - name: Check version
       #   run: |
       #     sudo apt-get update
@@ -33,9 +34,24 @@ jobs:
       #     curl -L -X PATCH -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ secrets.TOKEN }} " -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/Initsnow/kernelsu_xiaomi_polaris_action/actions/variables/KSU_LOCAL_VER -d '{"name":"KSU_LOCAL_VER","value":"'"${KSU_VER}"'"}'
       #     echo "KSU_VER=${KSU_VER}" >> $GITHUB_ENV
       #   shell: bash
-      - name: Set Version
+      
+      # - name: Set Version
+      #   run: |
+      #     echo "KSU_VER=11941" >> $GITHUB_ENV
+
+      - name: Get Version
         run: |
-          echo "KSU_VER=11941" >> $GITHUB_ENV
+          sudo apt-get update
+          sudo apt install git curl
+          cd /home/runner
+          mkdir tmp
+          cd tmp
+          git clone https://github.com/Initsnow/KernelSU_Patch.git -b main KernelSU
+          cd KernelSU
+          KSU_VER=$(expr 10000 + $(git rev-list --count HEAD) + 200)
+          echo "KSU_VER=${KSU_VER}" >> $GITHUB_ENV
+        shell: bash
+        
       - name: Setup build kernel environment
         run: |
           sudo apt-get update
@@ -67,9 +83,11 @@ jobs:
           cat ./arch/arm64/configs/vendor/xiaomi/polaris.config >> ./arch/arm64/configs/vendor/xiaomi/polaris_defconfig
           make O=out ARCH=arm64 vendor/xiaomi/polaris_defconfig
           make -j$(nproc --all) O=out CC=clang ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=/home/runner/gcc_aarch64/bin/aarch64-linux-android- CROSS_COMPILE_ARM32=/home/runner/gcc_arm/bin/arm-linux-androideabi- AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM_IAS=1 LLVM=1
+      
       - name: Print date
         run: |
           echo "START_TIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          
       - name: Pack AnyKernel3.zip
         run: |
           cd /home/runner/kernel_sdm845

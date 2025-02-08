@@ -1,1 +1,3 @@
-**Kernel for LineageOS21 Polaris(mix2s)**
+**Kernel for LineageOS22 Polaris(mix2s)**
+
+Now use [rsuntk/KernelSU](https://github.com/rsuntk/KernelSU/)
